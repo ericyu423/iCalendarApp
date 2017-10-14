@@ -22,58 +22,13 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         checkEventStoreAccessForCalendar()
-      //  createCalendar(withName: "test")
+
+        //error only because createNewCalendar runs before we can grant access
+        //this will not happen in a real app after first granting subsequent
+        //runs will have no problems
         
-        
-        
-        //createNewCalender(reservationCode:reservationCode)
-     
-        
-        //  let dict:[String:String] = ["key":"Hello"]
-      //  UserDefaults.standard.set(dict, forKey: "xyxz")
-       
-        if let id = UserDefaults.standard.value(forKey: "ReservationPrimaryCalendar") as? String{
-            
-            
-           if let newCalendar =  eventStore.calendar(withIdentifier: id)
-           {
-                do {
-                    
-                    try eventStore.removeCalendar(newCalendar, commit: true)
-                }catch{
-                    print("remove failed")
-                }
-            }
-        }
-        
-        
-        
-       /*
-        
-        for a in test {
-              //addEvent(a)
-      
-        }*/
-        
-        
-     
-        
-        
-        
-        //title,eventID
-        
-        
-       /*
-        
-        if var myDict = UserDefaults.standard.value(forKey: "xyxz") as? [String:String]{
-            
-            myDict.updateValue("Hello",forKey: "key")
-             UserDefaults.standard.set(myDict, forKey: "xyxz")
-            
-        }*/
-      
-       // let result = UserDefaults.standard.value(forKey: "dict")
-        //print(result!)
+        createNewCalender(reservationCode: reservationCode)
+   
     }
     
    
@@ -85,9 +40,7 @@ extension ViewController {
     func deleteWithID(reservationCode:String){
         
         let event = eventStore.event(withIdentifier: reservationCode)
-        
-      
-        
+
         do{
             try eventStore.remove(event!, span: .thisEvent)
         }catch {
@@ -96,83 +49,47 @@ extension ViewController {
 
     }
     
-    func createCalendar(withName: String){
-        var theSource:EKSource?
-        
-        for source in eventStore.sources {
-            
-            //this happen if and only if we have icloud setup
-            if source.sourceType == .calDAV && (source.title == "iCloud") {
-                theSource = source
-                
-                
-                break
-            }
-        }
-        // Second: If no iCloud source is set-up / utilised, then fall back and use the local source.
-        if theSource == nil {
-            for source: EKSource in eventStore.sources {
-                
-                
-                if source.sourceType == .local {
-                    theSource = source
-                    break
+    
+    private func removeCalendar(withReservationCode code : String){
+        if let id = UserDefaults.standard.value(forKey: code) as? String{
+            if let newCalendar =  eventStore.calendar(withIdentifier: id)
+            {
+                do {
+                    try eventStore.removeCalendar(newCalendar, commit: true)
+                    print("succesfully removed "+code)
+                }catch{
+                     print("calendar can't be remove \(error.localizedDescription)")
                 }
             }
         }
-      
     }
+
     
     func createNewCalender(reservationCode: String){
-        //TODO: check reservationCode if exist delete it
-        
-        let newCalendar = EKCalendar(for: .event, eventStore: eventStore)
-        newCalendar.title = reservationCode
-        //this create local
-        
-        
-        let sources:[EKSource] = eventStore.sources
-        
-        
-        //this will break you need user to give permission first without permission this will break.
-        
-        /*
-        newCalendar.source = sources.filter {
-                $0.sourceType == .local
-        }.first
-        */
-        
-        newCalendar.source = sources.filter{
-            source -> Bool in
-            source.sourceType == .local || source.sourceType == .calDAV //get local or icoud source
-           
-        }.first!
-        
-        //filter is an array we only need the first one (it can only be one local)
+
+        //remove old calendar and it's events using reservation code
+        removeCalendar(withReservationCode: reservationCode)
        
-        
-        
-        
+        let newCalendar = EKCalendar(for: .event, eventStore: eventStore)
+        newCalendar.title = "trip("+reservationCode+")"
+ 
+        newCalendar.source = eventStore.sources.filter {
+                $0.sourceType == .local || $0.sourceType == .calDAV
+        }.first!
+     
+
         do {
-            
-            
             try eventStore.saveCalendar(newCalendar, commit: true)
-            
-        
-             UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:"ReservationPrimaryCalendar")
-            
-            
-            
+            print("succesfully save calendar with id"+newCalendar.calendarIdentifier)
+             UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:reservationCode)
         } catch {
-            
-            
+
             let alert = UIAlertController(title: "Calendar could not save", message: (error as NSError).localizedDescription, preferredStyle: .alert)
             let OKAction = UIAlertAction(title: "OK", style: .default, handler: nil)
             alert.addAction(OKAction)
             
             self.present(alert, animated: true, completion: nil)
         }
- 
     }
     
     func editEvent(){
@@ -183,21 +100,7 @@ extension ViewController {
         
     }
     
-    func checkEventStoreAccessForCalendar(){
-        let status = EKEventStore.authorizationStatus(for: .event)
-        if(status == .notDetermined){
-            requestCalendarAccess()
-        }
-    }
-    
-    func requestCalendarAccess(){
-        eventStore.requestAccess(to: .event) { (granted, error) in
-            if granted{
-                print("Access Granted to Calendar ...")
-            }
-        }
-    }
-    
+   
     func addEvent(a: String){
         
         
@@ -255,4 +158,24 @@ extension ViewController {
 
     
 }
+
+//checking calendar acess
+//make sure Privacy - Calendars Usage Description in plist
+extension ViewController {
+    func checkEventStoreAccessForCalendar(){
+        let status = EKEventStore.authorizationStatus(for: .event)
+        if(status == .notDetermined){
+            requestCalendarAccess()
+        }
+    }
+    
+    func requestCalendarAccess(){
+        eventStore.requestAccess(to: .event) { (granted, error) in
+            if granted{
+                print("Access Granted to Calendar ...")
+            }
+        }
+    }
+}
+    
 
