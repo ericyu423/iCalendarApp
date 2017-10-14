@@ -14,21 +14,39 @@ class ViewController: UIViewController {
     let eventStore = EKEventStore()
     
     let test = ["a","b","c","d","e"]
-    let reservationCode = "T9L228E3"
+    let reservationCode = "xxxyyzzz"
     let mykey = "xyz"
     let badkey = "abc"
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         checkEventStoreAccessForCalendar()
-        createNewCalender(reservationCode:reservationCode)
-      //  let dict:[String:String] = ["key":"Hello"]
+      //  createCalendar(withName: "test")
+        
+        
+        
+        //createNewCalender(reservationCode:reservationCode)
+     
+        
+        //  let dict:[String:String] = ["key":"Hello"]
       //  UserDefaults.standard.set(dict, forKey: "xyxz")
-       /*
-        if let myDict = UserDefaults.standard.value(forKey: "xyxzz") as? [String:String]{
-            //if you find something you come in
-            print("here")
-        }*/
+       
+        if let id = UserDefaults.standard.value(forKey: "ReservationPrimaryCalendar") as? String{
+            
+            
+           if let newCalendar =  eventStore.calendar(withIdentifier: id)
+           {
+                do {
+                    
+                    try eventStore.removeCalendar(newCalendar, commit: true)
+                }catch{
+                    print("remove failed")
+                }
+            }
+        }
+        
+        
         
        /*
         
@@ -45,14 +63,14 @@ class ViewController: UIViewController {
         //title,eventID
         
         
-       
+       /*
         
         if var myDict = UserDefaults.standard.value(forKey: "xyxz") as? [String:String]{
             
             myDict.updateValue("Hello",forKey: "key")
              UserDefaults.standard.set(myDict, forKey: "xyxz")
             
-        }
+        }*/
       
        // let result = UserDefaults.standard.value(forKey: "dict")
         //print(result!)
@@ -63,9 +81,103 @@ class ViewController: UIViewController {
 
 extension ViewController {
     
+
+    func deleteWithID(reservationCode:String){
+        
+        let event = eventStore.event(withIdentifier: reservationCode)
+        
+      
+        
+        do{
+            try eventStore.remove(event!, span: .thisEvent)
+        }catch {
+            print("event couldn't be saved \(error.localizedDescription)")
+        }
+
+    }
+    
+    func createCalendar(withName: String){
+        var theSource:EKSource?
+        
+        for source in eventStore.sources {
+            
+            //this happen if and only if we have icloud setup
+            if source.sourceType == .calDAV && (source.title == "iCloud") {
+                theSource = source
+                
+                
+                break
+            }
+        }
+        // Second: If no iCloud source is set-up / utilised, then fall back and use the local source.
+        if theSource == nil {
+            for source: EKSource in eventStore.sources {
+                
+                
+                if source.sourceType == .local {
+                    theSource = source
+                    break
+                }
+            }
+        }
+      
+    }
+    
+    func createNewCalender(reservationCode: String){
+        //TODO: check reservationCode if exist delete it
+        
+        let newCalendar = EKCalendar(for: .event, eventStore: eventStore)
+        newCalendar.title = reservationCode
+        //this create local
+        
+        
+        let sources:[EKSource] = eventStore.sources
+        
+        
+        //this will break you need user to give permission first without permission this will break.
+        
+        /*
+        newCalendar.source = sources.filter {
+                $0.sourceType == .local
+        }.first
+        */
+        
+        newCalendar.source = sources.filter{
+            source -> Bool in
+            source.sourceType == .local || source.sourceType == .calDAV //get local or icoud source
+           
+        }.first!
+        
+        //filter is an array we only need the first one (it can only be one local)
+       
+        
+        
+        
+        do {
+            
+            
+            try eventStore.saveCalendar(newCalendar, commit: true)
+            
+        
+             UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:"ReservationPrimaryCalendar")
+            
+            
+            
+        } catch {
+            
+            
+            let alert = UIAlertController(title: "Calendar could not save", message: (error as NSError).localizedDescription, preferredStyle: .alert)
+            let OKAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+            alert.addAction(OKAction)
+            
+            self.present(alert, animated: true, completion: nil)
+        }
+ 
+    }
+    
     func editEvent(){
         //edit not add event
-       /*  let pred = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [c])*/
+        /*  let pred = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [c])*/
         
         //let pred = eventStore
         
@@ -84,47 +196,6 @@ extension ViewController {
                 print("Access Granted to Calendar ...")
             }
         }
-    }
-    
-    func deleteWithID(reservationCode:String){
-        
-        let event = eventStore.event(withIdentifier: reservationCode)
-        
-      
-        
-        do{
-            try eventStore.remove(event!, span: .thisEvent)
-        }catch {
-            print("event couldn't be saved \(error.localizedDescription)")
-        }
-
-    }
-    
-    func createNewCalender(reservationCode: String){
-        //TODO: check reservationCode if exist delete it
-        
-        let newCalendar = EKCalendar(for: .event, eventStore: eventStore)
-        newCalendar.title = reservationCode
-        
-        let sourcesInEventStore = eventStore.sources //return source objects
-        //what does this mean
-        newCalendar.source = sourcesInEventStore.filter{
-            (source: EKSource) -> Bool in
-            source.sourceType.rawValue == EKSourceType.local.rawValue
-        }.first!
-        
-        do {
-            try eventStore.saveCalendar(newCalendar, commit: true)
-            UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:"ReservationPrimaryCalendar")
-            
-        } catch {
-            let alert = UIAlertController(title: "Calendar could not save", message: (error as NSError).localizedDescription, preferredStyle: .alert)
-            let OKAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-            alert.addAction(OKAction)
-            
-            self.present(alert, animated: true, completion: nil)
-        }
- 
     }
     
     func addEvent(a: String){
