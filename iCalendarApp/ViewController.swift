@@ -33,6 +33,8 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+    
+   removeEvent(calendarID: (UserDefaults.standard.value(forKey: reservationCode) as! String),title: "")
         
         checkEventStoreAccessForCalendar()
 
@@ -77,7 +79,8 @@ extension ViewController {
          doesn't seem like it affect the write but is annoying
          */
         
-        
+       
+  
  
         if let id = UserDefaults.standard.value(forKey: code) as? String{
             if let newCalendar =  eventStore.calendar(withIdentifier: id)
@@ -131,6 +134,23 @@ extension ViewController {
         //let pred = eventStore
         
     }
+    //remove from selected calendar
+    func removeEvent(calendarID: String?,title: String){
+        var calendarForThisEvent: EKCalendar!
+        
+        if calendarID != nil {
+            
+            calendarForThisEvent = eventStore.calendar(withIdentifier: calendarID!)
+        }else {
+            //if no id provided
+            calendarForThisEvent = eventStore.defaultCalendarForNewEvents
+        }
+        
+          let predicate =  eventStore.predicateForEvents(withStart: Date().addingTimeInterval(-5000), end: Date().addingTimeInterval(5000), calendars: [calendarForThisEvent])
+        //todo add now find the event
+        
+        
+    }
     
    
     func addEvent(calendarID: String?,title: String){
@@ -143,6 +163,8 @@ extension ViewController {
             //if no id provided
             calendarForThisEvent = eventStore.defaultCalendarForNewEvents
         }*/
+        
+        // it happens when you don't have any shared calendar in your device. Here is a link About shared iCloud calendars
         
 
         
