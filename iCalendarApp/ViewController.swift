@@ -38,7 +38,7 @@ class ViewController: UIViewController {
         
         checkEventStoreAccessForCalendar()
 
-        
+         //createNewCalendar(reservationCode: reservationCode)
        
         //error only because createNewCalendar runs before we can grant access
         //this will not happen in a real app after first granting subsequent
@@ -147,7 +147,25 @@ extension ViewController {
         }
         
           let predicate =  eventStore.predicateForEvents(withStart: Date().addingTimeInterval(-5000), end: Date().addingTimeInterval(5000), calendars: [calendarForThisEvent])
-        //todo add now find the event
+       
+        let list = eventStore.events(matching: predicate)
+        
+        
+       let event = list.filter {
+            $0.title == "a"   //can check for other attributes
+        }.first!
+        
+        event.notes = "add this string in it" 
+        
+        do {
+            try eventStore.save(event, span: .thisEvent, commit: true)
+            dismiss(animated: true, completion: nil);
+            
+        } catch {
+            print("event couldn't be saved \(error.localizedDescription)")
+        }
+        
+        
         
         
     }
@@ -208,6 +226,7 @@ extension ViewController {
 //make sure Privacy - Calendars Usage Description in plist
 extension ViewController {
     func checkEventStoreAccessForCalendar(){
+        
         let status = EKEventStore.authorizationStatus(for: .event)
         if(status == .notDetermined){
             requestCalendarAccess()
