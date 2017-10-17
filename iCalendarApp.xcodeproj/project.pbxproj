@@ -15,6 +15,7 @@
 		D43AD7391F9003C100E74592 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D43AD7371F9003C100E74592 /* LaunchScreen.storyboard */; };
 		D43AD7441F9003C100E74592 /* iCalendarAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43AD7431F9003C100E74592 /* iCalendarAppTests.swift */; };
 		D43AD74F1F9003C100E74592 /* iCalendarAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43AD74E1F9003C100E74592 /* iCalendarAppUITests.swift */; };
+		D4BFF6861F95BF8700DBAEAB /* Calendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BFF6851F95BF8700DBAEAB /* Calendar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		D43AD74A1F9003C100E74592 /* iCalendarAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iCalendarAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D43AD74E1F9003C100E74592 /* iCalendarAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCalendarAppUITests.swift; sourceTree = "<group>"; };
 		D43AD7501F9003C100E74592 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D4BFF6851F95BF8700DBAEAB /* Calendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calendar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 			children = (
 				D43AD72B1F9003C100E74592 /* AppDelegate.swift */,
 				D43AD72D1F9003C100E74592 /* ViewController.swift */,
+				D4BFF6851F95BF8700DBAEAB /* Calendar.swift */,
 				D43AD72F1F9003C100E74592 /* Main.storyboard */,
 				D43AD7351F9003C100E74592 /* Assets.xcassets */,
 				D43AD7371F9003C100E74592 /* LaunchScreen.storyboard */,
@@ -265,6 +268,7 @@
 				D43AD72E1F9003C100E74592 /* ViewController.swift in Sources */,
 				D43AD7341F9003C100E74592 /* iCalendarApp.xcdatamodeld in Sources */,
 				D43AD72C1F9003C100E74592 /* AppDelegate.swift in Sources */,
+				D4BFF6861F95BF8700DBAEAB /* Calendar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

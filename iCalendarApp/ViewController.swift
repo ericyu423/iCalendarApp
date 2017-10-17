@@ -7,12 +7,11 @@
 //
 
 import UIKit
-import EventKit
+//import EventKit
 
 class ViewController: UIViewController {
 
-   
-    let eventStore = EKEventStore()
+    let eventWriter = EventWriter()
     
     let test = ["a","b","c","d","e"]
     let reservationCode = "xxxyyzzz"
@@ -20,52 +19,46 @@ class ViewController: UIViewController {
     
     @IBAction func importToCalendar(_ sender: UIButton) {
         
-        
-        
-        let id = createNewCalendar(reservationCode: reservationCode)
-        
+        let calednarID = eventWriter.createNewCalendarWithID(reservationCode: reservationCode)
+ 
         for t in test {
             
-            addEvent(calendarID: id, title: t)
+            eventWriter.addEvent(calendarID: calednarID, title: t)
         }
         
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    
-   removeEvent(calendarID: (UserDefaults.standard.value(forKey: reservationCode) as! String),title: "")
-        
-        checkEventStoreAccessForCalendar()
 
-         //createNewCalendar(reservationCode: reservationCode)
-       
-        //error only because createNewCalendar runs before we can grant access
-        //this will not happen in a real app after first granting subsequent
-        //runs will have no problems
-        
-        
-   
+        eventWriter.checkEventStoreAccessForCalendar()
+
     }
     
    
 }
-
+/*
 extension ViewController {
     
+    
+    //don't use this unless EKCADErrorDomain Code=1014 keep happening again
     private func removeCalendar2(withReservationCode code : String){
         
         if let id = UserDefaults.standard.value(forKey: code) as? String {
             
-            let newCalendar = eventStore.calendars(for: .event).filter{
+            let calendars = eventStore.calendars(for: .event).filter{
                 $0.calendarIdentifier == id
-            }.first! //.first can have nil this will fuck shit up
+            }
             
-            do {
-                try eventStore.removeCalendar(newCalendar, commit: true)
-                print("succesfully removed "+code)
-            }catch{
-                print("calendar can't be remove \(error.localizedDescription)")
+            if let newCalendar = calendars.first {
+                do {
+                    try eventStore.removeCalendar(newCalendar, commit: true)
+                    print("succesfully removed "+code)
+                }catch{
+                    print("calendar can't be remove \(error.localizedDescription)")
+                }
+            }else{
+                //
             }
         }
 
@@ -106,36 +99,38 @@ extension ViewController {
         let newCalendar = EKCalendar(for: .event, eventStore: eventStore)
         newCalendar.title = "trip("+reservationCode+")"
  
-        newCalendar.source = eventStore.sources.filter {
-                $0.sourceType == .local // $0.sourceType == .calDAV  //
-        }.first!
- 
-
-        do {
-            try eventStore.saveCalendar(newCalendar, commit: true)
-            print("succesfully save calendar with id"+newCalendar.calendarIdentifier)
-             UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:reservationCode)
-        } catch {
-
-            let alert = UIAlertController(title: "Calendar could not save", message: (error as NSError).localizedDescription, preferredStyle: .alert)
-            let OKAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-            alert.addAction(OKAction)
+        let filteredSources = eventStore.sources.filter {
+                $0.sourceType == .local }  // for icloud  $0.sourceType == .calDAV
             
-            self.present(alert, animated: true, completion: nil)
+        
+        if let localSource = filteredSources.first {
+             newCalendar.source = localSource
+            
+            do {
+                try eventStore.saveCalendar(newCalendar, commit: true)
+                print("succesfully save calendar with id"+newCalendar.calendarIdentifier)
+                UserDefaults.standard.set(newCalendar.calendarIdentifier,forKey:reservationCode)
+            } catch {
+                
+                let alert = UIAlertController(title: "Calendar could not save", message: (error as NSError).localizedDescription, preferredStyle: .alert)
+                let OKAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                alert.addAction(OKAction)
+            
+                self.present(alert, animated: true, completion: nil)
+            }
+            
+        }else{
+            //no local source, nothing will be written
         }
         
+ 
+
         return newCalendar.calendarIdentifier
     }
     
-    func editEvent(){
-        //edit not add event
-        /*  let pred = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [c])*/
-        
-        //let pred = eventStore
-        
-    }
+  
     //remove from selected calendar
-    func removeEvent(calendarID: String?,title: String){
+    func editEvent(calendarID: String?,title: String){
         var calendarForThisEvent: EKCalendar!
         
         if calendarID != nil {
@@ -155,7 +150,7 @@ extension ViewController {
             $0.title == "a"   //can check for other attributes
         }.first!
         
-        event.notes = "add this string in it" 
+        event.notes = "add this string in it"
         
         do {
             try eventStore.save(event, span: .thisEvent, commit: true)
@@ -164,10 +159,7 @@ extension ViewController {
         } catch {
             print("event couldn't be saved \(error.localizedDescription)")
         }
-        
-        
-        
-        
+ 
     }
     
    
@@ -237,9 +229,10 @@ extension ViewController {
         eventStore.requestAccess(to: .event) { (granted, error) in
             if granted{
                 print("Access Granted to Calendar ...")
+                //get rid of warnning
             }
         }
     }
 }
     
-
+*/
