@@ -51,6 +51,38 @@ class EventWriter {
         }
     }
     
+    func editEvent(calendarID: String?,title: String){
+        var calendarForThisEvent: EKCalendar!
+        
+        if calendarID != nil {
+            
+            calendarForThisEvent = eventStore.calendar(withIdentifier: calendarID!)
+        }else {
+            //if no id provided
+            calendarForThisEvent = eventStore.defaultCalendarForNewEvents
+        }
+        
+        let predicate =  eventStore.predicateForEvents(withStart: Date().addingTimeInterval(-5000), end: Date().addingTimeInterval(5000), calendars: [calendarForThisEvent])
+        
+        let list = eventStore.events(matching: predicate)
+        
+        
+        let event = list.filter {
+            $0.title == "a"   //can check for other attributes
+            }.first!
+        
+        event.notes = "add this string in it"
+        
+        do {
+            try eventStore.save(event, span: .thisEvent, commit: true)
+            //dismiss(animated: true, completion: nil);
+            
+        } catch {
+            print("event couldn't be saved \(error.localizedDescription)")
+        }
+        
+    }
+    
     func addEvent(calendarID: String?,title: String){
         
 
@@ -121,6 +153,24 @@ extension EventWriter {
             }
             
         }
+    }
+    
+    //code reserveation code to find calendar
+    func getCurrentCalendar(withReservationCode code : String) -> EKCalendar?
+    {
+        
+        if let calendarID = UserDefaults.standard.value(forKey: code) as? String {
+            
+            /* eventStore.calendar(withIdentifier: calendarID) gaves types 3 from daemon: Error Domain=EKCADErrorDomain Code=1014 */
+            let calendar = eventStore.calendars(for: .event).filter{
+                $0.calendarIdentifier == calendarID
+            }.first
+            
+            return calendar
+        }
+        
+        return nil
+
     }
     
 }
